@@ -11,6 +11,11 @@ interface Props {
   setHasError: (hasError: Errors) => void;
   inputRef: React.RefObject<HTMLInputElement>;
   initialTodos: Todo[];
+  isUpdating: boolean;
+  setIsUpdating: (isUpdating: boolean) => void;
+  updatingTodoId: number | null;
+  setUpdatingTodoId: (updatingTodoId: number | null) => void;
+  toggleCompleteAll: boolean;
 }
 export const TodoList: React.FC<Props> = props => {
   const {
@@ -22,6 +27,11 @@ export const TodoList: React.FC<Props> = props => {
     setHasError,
     inputRef,
     initialTodos,
+    isUpdating,
+    setIsUpdating,
+    updatingTodoId,
+    setUpdatingTodoId,
+    toggleCompleteAll,
   } = props;
 
   return (
@@ -41,6 +51,11 @@ export const TodoList: React.FC<Props> = props => {
             setHasError={setHasError}
             inputRef={inputRef}
             initialTodos={initialTodos}
+            isUpdating={isUpdating}
+            setIsUpdating={setIsUpdating}
+            updatingTodoId={updatingTodoId}
+            setUpdatingTodoId={setUpdatingTodoId}
+            toggleCompleteAll={toggleCompleteAll}
           />
         );
       })}
@@ -57,6 +72,11 @@ export const TodoList: React.FC<Props> = props => {
           setHasError={setHasError}
           inputRef={inputRef}
           initialTodos={initialTodos}
+          isUpdating={isUpdating}
+          setIsUpdating={setIsUpdating}
+          updatingTodoId={updatingTodoId}
+          setUpdatingTodoId={setUpdatingTodoId}
+          toggleCompleteAll={toggleCompleteAll}
         />
       )}
     </section>

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Errors } from '../../utils/Errors';
-import { addTodo } from '../../api/todos';
+import { addTodo, updateTodo } from '../../api/todos';
 import { Todo } from '../../types/Todo';
+import cn from 'classnames';
 
 interface Props {
   title: string;
@@ -15,6 +16,11 @@ interface Props {
   tempTodo: Todo | null;
   inputRef: React.RefObject<HTMLInputElement>;
   isDeleteAllCompleted: boolean;
+  isUpdating: boolean;
+  setIsUpdating: (isUpdating: boolean) => void;
+  updatingTodoId: number | null;
+  setUpdatingTodoId: (updatingTodoId: number | null) => void;
+  setToggleCompleteAll: (toggleCompleteAll: boolean) => void;
 }
 
 export const Header: React.FC<Props> = props => {
@@ -29,11 +35,16 @@ export const Header: React.FC<Props> = props => {
     tempTodo,
     inputRef,
     isDeleteAllCompleted,
+    setIsUpdating,
+    setUpdatingTodoId,
+    setToggleCompleteAll,
   } = props;
   const [isDisabled, setIsDisabled] = useState(false);
   const [tempIdCounter, setTempIdCounter] = useState(0);
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isAllTodosCompleted = todos.every(todo => todo.completed);
+  const isTodosNotEmpty = todos.length !== 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -54,18 +65,18 @@ export const Header: React.FC<Props> = props => {
     }
 
     const newTodo = {
-      id: tempIdCounter,
       userId: USER_ID,
       title: title.trim(),
       completed: false,
     };
 
-    setTempTodo(newTodo);
+    setTempTodo({ ...newTodo, id: 0 });
     setIsDisabled(true);
 
     try {
-      await addTodo(newTodo);
-      setTodos([...todos, newTodo]);
+      const addNewTodo = await addTodo(newTodo);
+
+      setTodos([...todos, addNewTodo]);
       setIsDisabled(false);
       setTitle('');
       setTempTodo(null);
@@ -90,7 +101,7 @@ export const Header: React.FC<Props> = props => {
     inputRef.current?.focus();
   }, [tempTodo, isDeleteAllCompleted]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -98,13 +109,57 @@ export const Header: React.FC<Props> = props => {
     };
   }, []);
 
+  const handleUpdateToCompleteAll = async () => {
+    setIsUpdating(true);
+    setUpdatingTodoId(null);
+    setToggleCompleteAll(true);
+
+    const areAllTodosCompleted = todos.every(todo => todo.completed);
+    const todosToUpdate = todos.filter(
+      todo => todo.completed === areAllTodosCompleted,
+    );
+
+    try {
+      const updatePromises = todosToUpdate.map(todo =>
+        updateTodo(todo.id, {
+          title: todo.title,
+          completed: !areAllTodosCompleted,
+          userId: todo.userId,
+        }),
+      );
+
+      await Promise.all(updatePromises);
+
+      const updatedTodos = todos.map(todo => ({
+        ...todo,
+        completed: todosToUpdate.some(t => t.id === todo.id)
+          ? !areAllTodosCompleted
+          : todo.completed,
+      }));
+
+      setTodos(updatedTodos);
+
+      setToggleCompleteAll(false);
+      setIsUpdating(false);
+      setUpdatingTodoId(null);
+    } catch {
+      setHasError(Errors.UnableToUpdate);
+      setIsUpdating(false);
+      setUpdatingTodoId(null);
+      setToggleCompleteAll(true);
+    }
+  };
+
   return (
     <header className="todoapp__header">
-      <button
-        type="button"
-        className="todoapp__toggle-all active"
-        data-cy="ToggleAllButton"
-      />
+      {isTodosNotEmpty && (
+        <button
+          type="button"
+          className={cn('todoapp__toggle-all', { active: isAllTodosCompleted })}
+          data-cy="ToggleAllButton"
+          onClick={handleUpdateToCompleteAll}
+        />
+      )}
       <form onSubmit={handleSubmit}>
         <input
           data-cy="NewTodoField"

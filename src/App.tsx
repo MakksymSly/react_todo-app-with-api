@@ -21,6 +21,10 @@ export const App: React.FC = () => {
   const [isDeleteAllCompleted, setIsDeleteAllCompleted] =
     useState<boolean>(false);
 
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updatingTodoId, setUpdatingTodoId] = useState<number | null>(null);
+  const [toggleCompleteAll, setToggleCompleteAll] = useState(false);
+
   useEffect(() => {
     setHasError(Errors.NoError);
     let timer: NodeJS.Timeout | undefined;
@@ -95,6 +99,11 @@ export const App: React.FC = () => {
           tempTodo={tempTodo}
           inputRef={inputRef}
           isDeleteAllCompleted={isDeleteAllCompleted}
+          isUpdating={isUpdating}
+          setIsUpdating={setIsUpdating}
+          updatingTodoId={updatingTodoId}
+          setUpdatingTodoId={setUpdatingTodoId}
+          setToggleCompleteAll={setToggleCompleteAll}
         />
         <TodoList
           todos={filteredTodos}
@@ -105,6 +114,11 @@ export const App: React.FC = () => {
           setHasError={setHasError}
           inputRef={inputRef}
           initialTodos={todos}
+          isUpdating={isUpdating}
+          setIsUpdating={setIsUpdating}
+          updatingTodoId={updatingTodoId}
+          setUpdatingTodoId={setUpdatingTodoId}
+          toggleCompleteAll={toggleCompleteAll}
         />
 
         {todos.length > 0 && (
