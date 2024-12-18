@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
-import React, { useRef } from 'react';
 import cn from 'classnames';
 import { deleteTodo, updateTodo } from '../../api/todos';
 import { Todo } from '../../types/Todo';
 import { Errors } from '../../utils/Errors';
+import { useState } from 'react';
 
 
 
@@ -33,7 +33,6 @@ export const TodoCard: React.FC<Props> = props => {
   const {
     title,
     isCompleted,
-    isTempTodo,
     isDeleting,
     todoId,
     setIsDeleting,
@@ -48,10 +47,11 @@ export const TodoCard: React.FC<Props> = props => {
     toggleCompleteAll,
   } = props;
 
-  const [deletingCardId, setDeletingCardId] = React.useState<number | null>();
-  const [isEditStatus, setIsEditStatus] = React.useState(false);
-  const [editTitleQuery, setEditTitleQuery] = React.useState(title);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [deletingCardId, setDeletingCardId] = useState<number | null>(null);
+  const [isEditStatus, setIsEditStatus] = useState<boolean>(false);
+  const [editTitleQuery, setEditTitleQuery] = useState<string>(title);
+  const [isUpdateRunning, setIsUpdateRunning] = useState<boolean>(false);
+
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -100,13 +100,20 @@ export const TodoCard: React.FC<Props> = props => {
     }
   };
 
-  const handleEditUpdate = async (
+  const handleEditUpdate =  async (
     event:
     | React.FormEvent<HTMLFormElement>
     | React.FocusEvent<HTMLInputElement, Element>
     | React.KeyboardEvent<HTMLInputElement>
   ) => {
     event.preventDefault();
+
+    if( isUpdateRunning) {
+
+      return;
+    }
+
+    setIsUpdateRunning(true);
 
     const currTodo = initialTodos.find(todo => todo.id === todoId);
 
@@ -117,8 +124,9 @@ export const TodoCard: React.FC<Props> = props => {
 
 
     if(!editTitleQuery.trim()) {
-      handleDelete();
+      await handleDelete();
       setIsUpdating(false);
+      setIsUpdateRunning(false);
 
       return;
     }
@@ -126,13 +134,11 @@ export const TodoCard: React.FC<Props> = props => {
     if (editTitleQuery === currTodo?.title) {
       setIsUpdating(false);
       setIsEditStatus(false);
+      setIsUpdateRunning(false);
 
       return;
     }
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
 
 
 
@@ -146,13 +152,14 @@ export const TodoCard: React.FC<Props> = props => {
           userId: currTodo.userId,
         };
 
-        await updateTodo(currTodo.id, todoToUpdate);
+        await updateTodo( currTodo.id, todoToUpdate);
 
         setIsUpdating(false);
         setUpdatingTodoId(null);
         setTodos(initialTodos.map(todo =>
           (todo.id === currTodo.id ? { ...todoToUpdate, id: todo.id } : todo)));
         setIsEditStatus(false);
+        setIsUpdateRunning(false);
 
       }
     } catch {
@@ -160,18 +167,14 @@ export const TodoCard: React.FC<Props> = props => {
       setHasError(Errors.UnableToUpdate);
       setIsUpdating(false);
       setUpdatingTodoId(null);
+      setIsUpdateRunning(false);
 
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
 
-      timeoutRef.current = setTimeout(() => {
-        setHasError(Errors.NoError);
-      }, 3000);
+
     }
   };
 
-  const handleEscapeOrEnterButton =
+  const handleEscapeButton =
     (event: React.KeyboardEvent<HTMLInputElement>) => {
 
       if (event.key === 'Escape') {
@@ -179,10 +182,18 @@ export const TodoCard: React.FC<Props> = props => {
         setEditTitleQuery(title);
       }
 
-      if (event.key === 'Enter') {
-        handleEditUpdate(event);
-      }
+
+
     };
+
+  const handleOnblur = (event: React.FocusEvent<HTMLInputElement, Element>) => {
+    if (!isUpdateRunning) {
+      handleEditUpdate(event);
+      setIsEditStatus(false);
+    }
+
+    return;
+  };
 
   return (
     <div data-cy="Todo" className={cn('todo', { completed: isCompleted })}>
@@ -206,11 +217,8 @@ export const TodoCard: React.FC<Props> = props => {
             value={editTitleQuery}
             onChange={event => setEditTitleQuery(event.target.value)}
             autoFocus
-            onBlur={event => {
-              handleEditUpdate(event);
-              setIsEditStatus(false);
-            }}
-            onKeyDown={handleEscapeOrEnterButton}
+            onBlur={handleOnblur}
+            onKeyDown={handleEscapeButton}
 
           />
         </form>
@@ -243,7 +251,7 @@ export const TodoCard: React.FC<Props> = props => {
         data-cy="TodoLoader"
         className={cn('modal overlay', {
           'is-active':
-            isTempTodo ||
+
             (isDeleting && deletingCardId === todoId) ||
             (isUpdating && updatingTodoId === todoId) ||
             toggleCompleteAll,

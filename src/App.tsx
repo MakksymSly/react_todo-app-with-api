@@ -15,11 +15,9 @@ export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [hasError, setHasError] = useState<Errors>(Errors.NoError);
   const [filterBy, setFilterBy] = useState<FilterTodosBy>(FilterTodosBy.All);
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState<string>('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [isDeleteAllCompleted, setIsDeleteAllCompleted] =
-    useState<boolean>(false);
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [updatingTodoId, setUpdatingTodoId] = useState<number | null>(null);
@@ -27,7 +25,6 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     setHasError(Errors.NoError);
-    let timer: NodeJS.Timeout | undefined;
 
     (async () => {
       try {
@@ -36,15 +33,8 @@ export const App: React.FC = () => {
         setTodos(response);
       } catch {
         setHasError(Errors.UnableToLoad);
-        timer = setTimeout(() => {
-          setHasError(Errors.NoError);
-        }, 3000);
       }
     })();
-
-    return () => {
-      clearTimeout(timer);
-    };
   }, []);
 
   const filteredTodos = todos.filter(todo => {
@@ -64,22 +54,17 @@ export const App: React.FC = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDeleteAllCompleted = async () => {
-    setIsDeleteAllCompleted(true);
     const completedTodos = todos.filter(todo => todo.completed);
 
-    try {
-      for (const todo of completedTodos) {
-        try {
-          await deleteTodo(todo.id);
-          setTodos(currTodos =>
-            currTodos.filter(currTodo => currTodo.id !== todo.id),
-          );
-        } catch (error) {
-          setHasError(Errors.UnableToDelete);
-        }
+    for (const todo of completedTodos) {
+      try {
+        await deleteTodo(todo.id);
+        setTodos(currTodos =>
+          currTodos.filter(currTodo => currTodo.id !== todo.id),
+        );
+      } catch (error) {
+        setHasError(Errors.UnableToDelete);
       }
-    } finally {
-      setIsDeleteAllCompleted(false);
     }
   };
 
@@ -96,9 +81,7 @@ export const App: React.FC = () => {
           todos={todos}
           setTodos={setTodos}
           setTempTodo={setTempTodo}
-          tempTodo={tempTodo}
           inputRef={inputRef}
-          isDeleteAllCompleted={isDeleteAllCompleted}
           isUpdating={isUpdating}
           setIsUpdating={setIsUpdating}
           updatingTodoId={updatingTodoId}
@@ -126,8 +109,6 @@ export const App: React.FC = () => {
             uncompletedTodosLength={uncompletedTodosLength}
             filterBy={filterBy}
             setFilteredBy={setFilterBy}
-            hasError={hasError}
-            setHasError={setHasError}
             completedTodosLenght={completedTodosLenght}
             handleDeleteAllCompleted={handleDeleteAllCompleted}
           />

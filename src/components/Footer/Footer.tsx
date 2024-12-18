@@ -1,13 +1,10 @@
 import React from 'react';
 import { FilterTodosBy } from '../../utils/FilterTodosBy';
 import cn from 'classnames';
-import { Errors } from '../../utils/Errors';
 interface Props {
   uncompletedTodosLength: number;
   filterBy: FilterTodosBy;
   setFilteredBy: (filterBy: FilterTodosBy) => void;
-  hasError: Errors;
-  setHasError: (hasError: Errors) => void;
   completedTodosLenght: number;
   handleDeleteAllCompleted: () => void;
 }

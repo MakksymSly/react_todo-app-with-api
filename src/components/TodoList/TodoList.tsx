@@ -1,6 +1,7 @@
 import { Todo } from '../../types/Todo';
 import { Errors } from '../../utils/Errors';
 import { TodoCard } from '../TodoCard/TodoCard';
+import { TodoCardTemplate } from '../TodoCard/TodoCardTemplate';
 
 interface Props {
   todos: Todo[];
@@ -59,26 +60,7 @@ export const TodoList: React.FC<Props> = props => {
           />
         );
       })}
-      {tempTodo && (
-        <TodoCard
-          title={tempTodo.title}
-          isCompleted={false}
-          isTempTodo={true}
-          todoId={tempTodo.id}
-          isDeleting={isDeleting}
-          setIsDeleting={setIsDeleting}
-          todos={todos}
-          setTodos={setTodos}
-          setHasError={setHasError}
-          inputRef={inputRef}
-          initialTodos={initialTodos}
-          isUpdating={isUpdating}
-          setIsUpdating={setIsUpdating}
-          updatingTodoId={updatingTodoId}
-          setUpdatingTodoId={setUpdatingTodoId}
-          toggleCompleteAll={toggleCompleteAll}
-        />
-      )}
+      {tempTodo && <TodoCardTemplate title={tempTodo.title} />}
     </section>
   );
 };

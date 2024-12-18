@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Errors } from '../../utils/Errors';
 import { addTodo, updateTodo } from '../../api/todos';
 import { Todo } from '../../types/Todo';
@@ -13,9 +13,7 @@ interface Props {
   todos: Todo[];
   setTodos: (todos: Todo[]) => void;
   setTempTodo: (todo: Todo | null) => void;
-  tempTodo: Todo | null;
   inputRef: React.RefObject<HTMLInputElement>;
-  isDeleteAllCompleted: boolean;
   isUpdating: boolean;
   setIsUpdating: (isUpdating: boolean) => void;
   updatingTodoId: number | null;
@@ -32,9 +30,7 @@ export const Header: React.FC<Props> = props => {
     todos,
     setTodos,
     setTempTodo,
-    tempTodo,
     inputRef,
-    isDeleteAllCompleted,
     setIsUpdating,
     setUpdatingTodoId,
     setToggleCompleteAll,
@@ -42,7 +38,6 @@ export const Header: React.FC<Props> = props => {
   const [isDisabled, setIsDisabled] = useState(false);
   const [tempIdCounter, setTempIdCounter] = useState(0);
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isAllTodosCompleted = todos.every(todo => todo.completed);
   const isTodosNotEmpty = todos.length !== 0;
 
@@ -52,14 +47,6 @@ export const Header: React.FC<Props> = props => {
 
     if (!title.trim()) {
       setHasError(Errors.TitleEmpty);
-
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      timeoutRef.current = setTimeout(() => {
-        setHasError(Errors.NoError);
-      }, 3000);
 
       return;
     }
@@ -87,27 +74,12 @@ export const Header: React.FC<Props> = props => {
       setHasError(Errors.UnableToAdd);
       setTempTodo(null);
       setIsDisabled(false);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      timeoutRef.current = setTimeout(() => {
-        setHasError(Errors.NoError);
-      }, 3000);
     }
   };
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, [tempTodo, isDeleteAllCompleted]);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+  });
 
   const handleUpdateToCompleteAll = async () => {
     setIsUpdating(true);
