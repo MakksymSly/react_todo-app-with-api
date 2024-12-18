@@ -5,8 +5,6 @@ import { Todo } from '../../types/Todo';
 import { Errors } from '../../utils/Errors';
 import { useState } from 'react';
 
-
-
 interface Props {
   title: string;
   isCompleted: boolean;
@@ -25,8 +23,6 @@ interface Props {
   setUpdatingTodoId: (updatingTodoId: number | null) => void;
   toggleCompleteAll: boolean;
 }
-
-
 
 /* eslint-disable jsx-a11y/label-has-associated-control */
 export const TodoCard: React.FC<Props> = props => {
@@ -48,10 +44,9 @@ export const TodoCard: React.FC<Props> = props => {
   } = props;
 
   const [deletingCardId, setDeletingCardId] = useState<number | null>(null);
-  const [isEditStatus, setIsEditStatus] = useState<boolean>(false);
-  const [editTitleQuery, setEditTitleQuery] = useState<string>(title);
-  const [isUpdateRunning, setIsUpdateRunning] = useState<boolean>(false);
-
+  const [isEditStatus, setIsEditStatus] = useState(false);
+  const [editTitleQuery, setEditTitleQuery] = useState(title);
+  const [isUpdateRunning, setIsUpdateRunning] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -109,12 +104,10 @@ export const TodoCard: React.FC<Props> = props => {
     event.preventDefault();
 
     if( isUpdateRunning) {
-
       return;
     }
 
     setIsUpdateRunning(true);
-
     const currTodo = initialTodos.find(todo => todo.id === todoId);
 
     if (currTodo) {
@@ -145,6 +138,7 @@ export const TodoCard: React.FC<Props> = props => {
 
 
     try {
+
       if (currTodo) {
         const todoToUpdate = {
           title: editTitleQuery.trim(),
@@ -168,9 +162,6 @@ export const TodoCard: React.FC<Props> = props => {
       setIsUpdating(false);
       setUpdatingTodoId(null);
       setIsUpdateRunning(false);
-
-
-
     }
   };
 

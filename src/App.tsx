@@ -13,11 +13,11 @@ import { Error } from './components/Error/Error';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [hasError, setHasError] = useState<Errors>(Errors.NoError);
-  const [filterBy, setFilterBy] = useState<FilterTodosBy>(FilterTodosBy.All);
-  const [title, setTitle] = useState<string>('');
+  const [hasError, setHasError] = useState(Errors.NoError);
+  const [filterBy, setFilterBy] = useState(FilterTodosBy.All);
+  const [title, setTitle] = useState('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [updatingTodoId, setUpdatingTodoId] = useState<number | null>(null);
