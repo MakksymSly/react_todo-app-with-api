@@ -1,27 +1,26 @@
 /* eslint-disable prettier/prettier */
 import cn from 'classnames';
-import { deleteTodo, updateTodo } from '../../api/todos';
+import { updateTodo } from '../../api/todos';
 import { Todo } from '../../types/Todo';
-import { Errors } from '../../utils/Errors';
+import { Errors } from '../../types/Errors';
 import { useState } from 'react';
 
 interface Props {
   title: string;
   isCompleted: boolean;
-  isTempTodo: boolean;
   isDeleting: boolean;
   todoId: number;
   setIsDeleting: (isDeleting: boolean) => void;
-  todos: Todo[];
   setTodos: (todos: Todo[]) => void;
   setHasError: (hasError: Errors) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
   initialTodos: Todo[];
   isUpdating: boolean;
   setIsUpdating: (isUpdating: boolean) => void;
   updatingTodoId: number | null;
   setUpdatingTodoId: (updatingTodoId: number | null) => void;
   toggleCompleteAll: boolean;
+  handleDelete: (todoId: number) => void;
+  deletingCardId: number | null;
 }
 
 /* eslint-disable jsx-a11y/label-has-associated-control */
@@ -31,40 +30,24 @@ export const TodoCard: React.FC<Props> = props => {
     isCompleted,
     isDeleting,
     todoId,
-    setIsDeleting,
     setTodos,
     setHasError,
-    inputRef,
     initialTodos,
     isUpdating,
     setIsUpdating,
     updatingTodoId,
     setUpdatingTodoId,
     toggleCompleteAll,
+    handleDelete,
+    deletingCardId,
   } = props;
 
-  const [deletingCardId, setDeletingCardId] = useState<number | null>(null);
+
   const [isEditStatus, setIsEditStatus] = useState(false);
   const [editTitleQuery, setEditTitleQuery] = useState(title);
   const [isUpdateRunning, setIsUpdateRunning] = useState(false);
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    setDeletingCardId(todoId);
 
-    try {
-      await deleteTodo(todoId);
-      setIsDeleting(false);
-      setDeletingCardId(null);
-      setTodos(initialTodos.filter(todo => todo.id !== todoId));
-      setDeletingCardId(null);
-      inputRef.current?.focus();
-    } catch {
-      setHasError(Errors.UnableToDelete);
-      setIsDeleting(false);
-      setDeletingCardId(null);
-    }
-  };
 
   const handleComplete = async () => {
     const currTodo = initialTodos.find(todo => todo.id === todoId);
@@ -117,7 +100,7 @@ export const TodoCard: React.FC<Props> = props => {
 
 
     if(!editTitleQuery.trim()) {
-      await handleDelete();
+      await handleDelete(todoId);
       setIsUpdating(false);
       setIsUpdateRunning(false);
 
@@ -131,11 +114,6 @@ export const TodoCard: React.FC<Props> = props => {
 
       return;
     }
-
-
-
-
-
 
     try {
 
@@ -172,9 +150,6 @@ export const TodoCard: React.FC<Props> = props => {
         setIsEditStatus(false);
         setEditTitleQuery(title);
       }
-
-
-
     };
 
   const handleOnblur = (event: React.FocusEvent<HTMLInputElement, Element>) => {
@@ -185,6 +160,10 @@ export const TodoCard: React.FC<Props> = props => {
 
     return;
   };
+
+  const isLoaderVisible = (isDeleting && deletingCardId === todoId) ||
+  (isUpdating && updatingTodoId === todoId) ||
+  toggleCompleteAll;
 
   return (
     <div data-cy="Todo" className={cn('todo', { completed: isCompleted })}>
@@ -231,7 +210,7 @@ export const TodoCard: React.FC<Props> = props => {
             type="button"
             className="todo__remove"
             data-cy="TodoDelete"
-            onClick={handleDelete}
+            onClick={() => handleDelete(todoId)}
           >
             ×
           </button>
@@ -241,11 +220,7 @@ export const TodoCard: React.FC<Props> = props => {
       <div
         data-cy="TodoLoader"
         className={cn('modal overlay', {
-          'is-active':
-
-            (isDeleting && deletingCardId === todoId) ||
-            (isUpdating && updatingTodoId === todoId) ||
-            toggleCompleteAll,
+          'is-active': isLoaderVisible
         })}
       >
         <div className="modal-background has-background-white-ter" />

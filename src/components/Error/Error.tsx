@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import cn from 'classnames';
-import { Errors } from '../../utils/Errors';
+import { Errors } from '../../types/Errors';
 
 interface Props {
   hasError: Errors;

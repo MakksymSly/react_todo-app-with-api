@@ -1,5 +1,5 @@
 import React from 'react';
-import { FilterTodosBy } from '../../utils/FilterTodosBy';
+import { FilterTodosBy } from '../../types/FilterTodosBy';
 import cn from 'classnames';
 interface Props {
   uncompletedTodosLength: number;
@@ -17,11 +17,7 @@ export const Footer: React.FC<Props> = props => {
     handleDeleteAllCompleted,
   } = props;
 
-  const filters = [
-    { label: 'All', value: FilterTodosBy.All, href: '#/' },
-    { label: 'Active', value: FilterTodosBy.Active, href: '#/active' },
-    { label: 'Completed', value: FilterTodosBy.Completed, href: '#/completed' },
-  ];
+  const filters = Object.values(FilterTodosBy);
 
   return (
     <footer className="todoapp__footer" data-cy="Footer">
@@ -29,19 +25,18 @@ export const Footer: React.FC<Props> = props => {
         {uncompletedTodosLength} items left
       </span>
 
-      {/* Active link should have the 'selected' class */}
       <nav className="filter" data-cy="Filter">
         {filters.map(filter => (
           <a
-            key={filter.value}
-            href={filter.href}
+            key={filter}
+            href={`/#/${filter === FilterTodosBy.All ? '' : filter.toLowerCase()}`}
             className={cn('filter__link', {
-              selected: filterBy === filter.value,
+              selected: filterBy === filter,
             })}
-            data-cy={`FilterLink${filter.label}`}
-            onClick={() => setFilteredBy(filter.value)}
+            data-cy={`FilterLink${filter}`}
+            onClick={() => setFilteredBy(filter)}
           >
-            {filter.label}
+            {filter}
           </a>
         ))}
       </nav>

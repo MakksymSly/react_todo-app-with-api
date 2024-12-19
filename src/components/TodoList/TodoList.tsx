@@ -1,5 +1,5 @@
 import { Todo } from '../../types/Todo';
-import { Errors } from '../../utils/Errors';
+import { Errors } from '../../types/Errors';
 import { TodoCard } from '../TodoCard/TodoCard';
 import { TodoCardTemplate } from '../TodoCard/TodoCardTemplate';
 
@@ -10,13 +10,14 @@ interface Props {
   setIsDeleting: (isDeleting: boolean) => void;
   setTodos: (todos: Todo[]) => void;
   setHasError: (hasError: Errors) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
   initialTodos: Todo[];
   isUpdating: boolean;
   setIsUpdating: (isUpdating: boolean) => void;
   updatingTodoId: number | null;
   setUpdatingTodoId: (updatingTodoId: number | null) => void;
   toggleCompleteAll: boolean;
+  handleDelete: (todoId: number) => void;
+  deletingCardId: number | null;
 }
 export const TodoList: React.FC<Props> = props => {
   const {
@@ -26,13 +27,14 @@ export const TodoList: React.FC<Props> = props => {
     setIsDeleting,
     setTodos,
     setHasError,
-    inputRef,
     initialTodos,
     isUpdating,
     setIsUpdating,
     updatingTodoId,
     setUpdatingTodoId,
     toggleCompleteAll,
+    handleDelete,
+    deletingCardId,
   } = props;
 
   return (
@@ -43,20 +45,19 @@ export const TodoList: React.FC<Props> = props => {
             key={todo.id}
             title={todo.title}
             isCompleted={todo.completed}
-            isTempTodo={false}
             isDeleting={isDeleting}
             todoId={todo.id}
             setIsDeleting={setIsDeleting}
-            todos={todos}
             setTodos={setTodos}
             setHasError={setHasError}
-            inputRef={inputRef}
             initialTodos={initialTodos}
             isUpdating={isUpdating}
             setIsUpdating={setIsUpdating}
             updatingTodoId={updatingTodoId}
             setUpdatingTodoId={setUpdatingTodoId}
             toggleCompleteAll={toggleCompleteAll}
+            handleDelete={handleDelete}
+            deletingCardId={deletingCardId}
           />
         );
       })}

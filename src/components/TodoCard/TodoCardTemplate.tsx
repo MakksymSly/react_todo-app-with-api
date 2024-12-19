@@ -9,12 +9,7 @@ export const TodoCardTemplate: React.FC<Props> = props => {
   return (
     <div data-cy="Todo" className="todo">
       <label className="todo__status-label">
-        <input
-          data-cy="TodoStatus"
-          type="checkbox"
-          className="todo__status"
-          checked
-        />
+        <input data-cy="TodoStatus" type="checkbox" className="todo__status" />
       </label>
 
       <span data-cy="TodoTitle" className="todo__title">
