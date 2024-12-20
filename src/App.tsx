@@ -36,7 +36,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     setHasError(Errors.NoError);
 
-    (async () => {
+    const getAllTodos = async () => {
       try {
         const response = await getTodos();
 
@@ -44,7 +44,9 @@ export const App: React.FC = () => {
       } catch {
         setHasError(Errors.UnableToLoad);
       }
-    })();
+    };
+
+    getAllTodos();
   }, []);
 
   const filteredTodos = filterTodos(todos, filterBy);
@@ -59,41 +61,44 @@ export const App: React.FC = () => {
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setHasError(Errors.NoError);
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      setHasError(Errors.NoError);
 
-    if (!title.trim()) {
-      setHasError(Errors.TitleEmpty);
+      if (!title.trim()) {
+        setHasError(Errors.TitleEmpty);
 
-      return;
-    }
+        return;
+      }
 
-    const newTodo = {
-      userId: 0,
-      title: title.trim(),
-      completed: false,
-    };
+      const newTodo = {
+        userId: 0,
+        title: title.trim(),
+        completed: false,
+      };
 
-    setTempTodo({ ...newTodo, id: tempIdCounter });
-    setIsHeaderDisabled(true);
+      setTempTodo({ ...newTodo, id: tempIdCounter });
+      setIsHeaderDisabled(true);
 
-    try {
-      const addNewTodo = await addTodo(newTodo);
+      try {
+        const addNewTodo = await addTodo(newTodo);
 
-      setTodos([...todos, addNewTodo]);
-      setIsHeaderDisabled(false);
-      setTitle('');
-      setTempTodo(null);
-      setTempIdCounter(tempIdCounter + 1);
+        setTodos(prevTodos => [...prevTodos, addNewTodo]);
+        setIsHeaderDisabled(false);
+        setTitle('');
+        setTempTodo(null);
+        setTempIdCounter(tempIdCounter + 1);
 
-      inputRef.current?.focus();
-    } catch {
-      setHasError(Errors.UnableToAdd);
-      setTempTodo(null);
-      setIsHeaderDisabled(false);
-    }
-  };
+        inputRef.current?.focus();
+      } catch {
+        setHasError(Errors.UnableToAdd);
+        setTempTodo(null);
+        setIsHeaderDisabled(false);
+      }
+    },
+    [tempIdCounter, title],
+  );
 
   const handleDeleteAllCompleted = useCallback(async () => {
     const completedTodos = todos.filter(todo => todo.completed);
@@ -110,7 +115,7 @@ export const App: React.FC = () => {
     }
   }, [todos]);
 
-  const handleUpdateToCompleteAll = async () => {
+  const handleUpdateToCompleteAll = useCallback(async () => {
     setIsUpdating(true);
     setUpdatingTodoId(null);
     setToggleCompleteAll(true);
@@ -149,25 +154,60 @@ export const App: React.FC = () => {
       setUpdatingTodoId(null);
       setToggleCompleteAll(true);
     }
-  };
+  }, [todos]);
 
-  const handleDelete = async (todoId: number) => {
-    setIsDeleting(true);
-    setDeletingCardId(todoId);
+  const handleDelete = useCallback(
+    async (todoId: number) => {
+      setIsDeleting(true);
+      setDeletingCardId(todoId);
 
-    try {
-      await deleteTodo(todoId);
-      setIsDeleting(false);
-      setDeletingCardId(null);
-      setTodos(todos.filter(todo => todo.id !== todoId));
-      setDeletingCardId(null);
-      inputRef.current?.focus();
-    } catch {
-      setHasError(Errors.UnableToDelete);
-      setIsDeleting(false);
-      setDeletingCardId(null);
-    }
-  };
+      try {
+        await deleteTodo(todoId);
+        setIsDeleting(false);
+        setDeletingCardId(null);
+        setTodos(todos.filter(todo => todo.id !== todoId));
+        setDeletingCardId(null);
+        inputRef.current?.focus();
+      } catch {
+        setHasError(Errors.UnableToDelete);
+        setIsDeleting(false);
+        setDeletingCardId(null);
+      }
+    },
+    [todos],
+  );
+
+  const handleComplete = useCallback(
+    async (currentTodo: Todo) => {
+      const currTodo = todos.find(todo => todo.id === currentTodo.id);
+
+      setIsUpdating(true);
+      setUpdatingTodoId(currentTodo.id);
+
+      try {
+        if (currTodo) {
+          await updateTodo(currTodo.id, {
+            title: currTodo.title,
+            completed: !currTodo.completed,
+            userId: currTodo.userId,
+          });
+
+          const updatedTodos = todos.map(todo =>
+            todo.id === currTodo.id
+              ? { ...todo, completed: !currTodo.completed }
+              : todo,
+          );
+
+          setIsUpdating(false);
+          setTodos(updatedTodos);
+        }
+      } catch {
+        setIsUpdating(false);
+        setHasError(Errors.UnableToUpdate);
+      }
+    },
+    [todos],
+  );
 
   return (
     <div className="todoapp">
@@ -183,10 +223,9 @@ export const App: React.FC = () => {
           handleUpdateToCompleteAll={handleUpdateToCompleteAll}
         />
         <TodoList
-          todos={filteredTodos}
+          filteredTodos={filteredTodos}
           tempTodo={tempTodo}
           isDeleting={isDeleting}
-          setIsDeleting={setIsDeleting}
           setTodos={setTodos}
           setHasError={setHasError}
           initialTodos={todos}
@@ -197,6 +236,7 @@ export const App: React.FC = () => {
           toggleCompleteAll={toggleCompleteAll}
           handleDelete={handleDelete}
           deletingCardId={deletingCardId}
+          handleComplete={handleComplete}
         />
 
         {todos.length > 0 && (

@@ -5,12 +5,10 @@ import { Todo } from '../../types/Todo';
 import { Errors } from '../../types/Errors';
 import { useState } from 'react';
 
+
+
 interface Props {
-  title: string;
-  isCompleted: boolean;
   isDeleting: boolean;
-  todoId: number;
-  setIsDeleting: (isDeleting: boolean) => void;
   setTodos: (todos: Todo[]) => void;
   setHasError: (hasError: Errors) => void;
   initialTodos: Todo[];
@@ -21,15 +19,14 @@ interface Props {
   toggleCompleteAll: boolean;
   handleDelete: (todoId: number) => void;
   deletingCardId: number | null;
+  CurrentTodo: Todo;
+  handleComplete: (todo: Todo) => void;
 }
 
 /* eslint-disable jsx-a11y/label-has-associated-control */
 export const TodoCard: React.FC<Props> = props => {
   const {
-    title,
-    isCompleted,
     isDeleting,
-    todoId,
     setTodos,
     setHasError,
     initialTodos,
@@ -40,43 +37,18 @@ export const TodoCard: React.FC<Props> = props => {
     toggleCompleteAll,
     handleDelete,
     deletingCardId,
+    CurrentTodo,
+    handleComplete,
   } = props;
 
 
   const [isEditStatus, setIsEditStatus] = useState(false);
-  const [editTitleQuery, setEditTitleQuery] = useState(title);
+  const [editTitleQuery, setEditTitleQuery] = useState(CurrentTodo.title);
   const [isUpdateRunning, setIsUpdateRunning] = useState(false);
 
 
 
-  const handleComplete = async () => {
-    const currTodo = initialTodos.find(todo => todo.id === todoId);
 
-    setIsUpdating(true);
-    setUpdatingTodoId(todoId);
-
-    try {
-      if (currTodo) {
-        await updateTodo(currTodo.id, {
-          title: currTodo.title,
-          completed: !currTodo.completed,
-          userId: currTodo.userId,
-        });
-
-        const updatedTodos = initialTodos.map(todo =>
-          todo.id === currTodo.id
-            ? { ...todo, completed: !currTodo.completed }
-            : todo,
-        );
-
-        setIsUpdating(false);
-        setTodos(updatedTodos);
-      }
-    } catch {
-      setIsUpdating(false);
-      setHasError(Errors.UnableToUpdate);
-    }
-  };
 
   const handleEditUpdate =  async (
     event:
@@ -91,23 +63,21 @@ export const TodoCard: React.FC<Props> = props => {
     }
 
     setIsUpdateRunning(true);
-    const currTodo = initialTodos.find(todo => todo.id === todoId);
 
-    if (currTodo) {
-      setIsUpdating(true);
-      setUpdatingTodoId(currTodo.id);
-    }
+    setIsUpdating(true);
+    setUpdatingTodoId(CurrentTodo.id);
+
 
 
     if(!editTitleQuery.trim()) {
-      await handleDelete(todoId);
+      await handleDelete(CurrentTodo.id);
       setIsUpdating(false);
       setIsUpdateRunning(false);
 
       return;
     }
 
-    if (editTitleQuery === currTodo?.title) {
+    if (editTitleQuery === CurrentTodo.title) {
       setIsUpdating(false);
       setIsEditStatus(false);
       setIsUpdateRunning(false);
@@ -117,23 +87,24 @@ export const TodoCard: React.FC<Props> = props => {
 
     try {
 
-      if (currTodo) {
-        const todoToUpdate = {
-          title: editTitleQuery.trim(),
-          completed: currTodo.completed,
-          userId: currTodo.userId,
-        };
 
-        await updateTodo( currTodo.id, todoToUpdate);
+      const todoToUpdate = {
+        title: editTitleQuery.trim(),
+        completed: CurrentTodo.completed,
+        userId: CurrentTodo.userId,
+      };
 
-        setIsUpdating(false);
-        setUpdatingTodoId(null);
-        setTodos(initialTodos.map(todo =>
-          (todo.id === currTodo.id ? { ...todoToUpdate, id: todo.id } : todo)));
-        setIsEditStatus(false);
-        setIsUpdateRunning(false);
+      await updateTodo( CurrentTodo.id, todoToUpdate);
 
-      }
+      setIsUpdating(false);
+      setUpdatingTodoId(null);
+      setTodos(initialTodos.map(todo =>
+        (todo.id === CurrentTodo.id ? { ...todoToUpdate, id: todo.id }
+          : todo)));
+      setIsEditStatus(false);
+      setIsUpdateRunning(false);
+
+
     } catch {
 
       setHasError(Errors.UnableToUpdate);
@@ -148,7 +119,7 @@ export const TodoCard: React.FC<Props> = props => {
 
       if (event.key === 'Escape') {
         setIsEditStatus(false);
-        setEditTitleQuery(title);
+        setEditTitleQuery(CurrentTodo.title);
       }
     };
 
@@ -161,19 +132,20 @@ export const TodoCard: React.FC<Props> = props => {
     return;
   };
 
-  const isLoaderVisible = (isDeleting && deletingCardId === todoId) ||
-  (isUpdating && updatingTodoId === todoId) ||
+  const isLoaderVisible = (isDeleting && deletingCardId === CurrentTodo.id) ||
+  (isUpdating && updatingTodoId === CurrentTodo.id) ||
   toggleCompleteAll;
 
   return (
-    <div data-cy="Todo" className={cn('todo', { completed: isCompleted })}>
+    <div data-cy="Todo" className={cn('todo',
+      { completed: CurrentTodo.completed })}>
       <label className="todo__status-label">
         <input
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          checked={isCompleted}
-          onChange={handleComplete}
+          checked={CurrentTodo.completed}
+          onChange={() => handleComplete(CurrentTodo)}
         />
       </label>
 
@@ -203,14 +175,14 @@ export const TodoCard: React.FC<Props> = props => {
               setIsEditStatus(true);
             }}
           >
-            {title}
+            {CurrentTodo.title}
           </span>
 
           <button
             type="button"
             className="todo__remove"
             data-cy="TodoDelete"
-            onClick={() => handleDelete(todoId)}
+            onClick={() => handleDelete(CurrentTodo.id)}
           >
             ×
           </button>

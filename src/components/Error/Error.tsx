@@ -17,8 +17,6 @@ export const Error: React.FC<Props> = props => {
 
       return () => clearTimeout(timer);
     }
-
-    return;
   });
 
   return (

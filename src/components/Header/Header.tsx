@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Todo } from '../../types/Todo';
 import cn from 'classnames';
 
@@ -23,8 +23,11 @@ export const Header: React.FC<Props> = props => {
     handleUpdateToCompleteAll,
   } = props;
 
-  const isAllTodosCompleted = todos.every(todo => todo.completed);
-  const isTodosNotEmpty = todos.length !== 0;
+  const isAllTodosCompleted = useMemo(
+    () => todos.every(todo => todo.completed),
+    [todos],
+  );
+  const isTodosNotEmpty = useMemo(() => todos.length !== 0, [todos]);
 
   useEffect(() => {
     inputRef.current?.focus();

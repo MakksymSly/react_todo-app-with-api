@@ -4,10 +4,9 @@ import { TodoCard } from '../TodoCard/TodoCard';
 import { TodoCardTemplate } from '../TodoCard/TodoCardTemplate';
 
 interface Props {
-  todos: Todo[];
+  filteredTodos: Todo[];
   tempTodo: Todo | null;
   isDeleting: boolean;
-  setIsDeleting: (isDeleting: boolean) => void;
   setTodos: (todos: Todo[]) => void;
   setHasError: (hasError: Errors) => void;
   initialTodos: Todo[];
@@ -18,13 +17,13 @@ interface Props {
   toggleCompleteAll: boolean;
   handleDelete: (todoId: number) => void;
   deletingCardId: number | null;
+  handleComplete: (currentTodo: Todo) => void;
 }
 export const TodoList: React.FC<Props> = props => {
   const {
-    todos,
+    filteredTodos,
     tempTodo,
     isDeleting,
-    setIsDeleting,
     setTodos,
     setHasError,
     initialTodos,
@@ -35,19 +34,17 @@ export const TodoList: React.FC<Props> = props => {
     toggleCompleteAll,
     handleDelete,
     deletingCardId,
+    handleComplete,
   } = props;
 
   return (
     <section className="todoapp__main" data-cy="TodoList">
-      {todos.map(todo => {
+      {filteredTodos.map(todo => {
         return (
           <TodoCard
             key={todo.id}
-            title={todo.title}
-            isCompleted={todo.completed}
+            CurrentTodo={todo}
             isDeleting={isDeleting}
-            todoId={todo.id}
-            setIsDeleting={setIsDeleting}
             setTodos={setTodos}
             setHasError={setHasError}
             initialTodos={initialTodos}
@@ -58,6 +55,7 @@ export const TodoList: React.FC<Props> = props => {
             toggleCompleteAll={toggleCompleteAll}
             handleDelete={handleDelete}
             deletingCardId={deletingCardId}
+            handleComplete={handleComplete}
           />
         );
       })}

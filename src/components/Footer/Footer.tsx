@@ -29,7 +29,7 @@ export const Footer: React.FC<Props> = props => {
         {filters.map(filter => (
           <a
             key={filter}
-            href={`/#/${filter === FilterTodosBy.All ? '' : filter.toLowerCase()}`}
+            href={`/#/${filter !== FilterTodosBy.All && filter.toLowerCase()}`}
             className={cn('filter__link', {
               selected: filterBy === filter,
             })}
@@ -45,7 +45,7 @@ export const Footer: React.FC<Props> = props => {
         type="button"
         className="todoapp__clear-completed"
         data-cy="ClearCompletedButton"
-        disabled={completedTodosLenght === 0}
+        disabled={!completedTodosLenght}
         onClick={handleDeleteAllCompleted}
       >
         Clear completed
