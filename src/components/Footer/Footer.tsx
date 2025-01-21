@@ -16,7 +16,7 @@ export const Footer: React.FC<Props> = props => {
     completedTodosLenght,
     handleDeleteAllCompleted,
   } = props;
-
+  const basePath = '/react_todo-app-with-api';
   const filters = Object.values(FilterTodosBy);
 
   return (
@@ -29,7 +29,7 @@ export const Footer: React.FC<Props> = props => {
         {filters.map(filter => (
           <a
             key={filter}
-            href={`./#/${filter !== FilterTodosBy.All && filter.toLowerCase()}`}
+            href={`${basePath}/#/${filter !== FilterTodosBy.All && filter.toLowerCase()}`}
             className={cn('filter__link', {
               selected: filterBy === filter,
             })}
